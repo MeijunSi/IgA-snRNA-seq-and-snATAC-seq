@@ -1,6 +1,6 @@
-# IgA Nephropathy | snRNA-seq and snATAC-seq
+# complement C7 in IgA nephropathy
 
-Modular **English-language R analysis scripts**, organized by task rather than figure number.
+This repository presents analysis code accompanying our **original snRNA-seq and snATAC-seq research on complement C7 in IgA nephropathy**. The study's original experimental data and analyses are the work of the contributing investigators; the scripts are shared to support transparency and reproducibility. We warmly welcome researchers to **cite our associated article** when referring to this study, its original datasets, or its findings. A formal citation and publication link will be added once the article's bibliographic details are available.
 
 ## Quick navigation
 
