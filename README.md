@@ -108,3 +108,34 @@ Seurat, ggplot2, dplyr, patchwork, scales, Matrix, edgeR, ArchR, ComplexHeatmap,
 ## Data and privacy
 
 Do not commit patient-identifying records, raw reads, Seurat/ArchR serialized projects, Arrow files, credentials or restricted raw data. No license has yet been selected.
+
+## Extended downstream analyses
+
+### snRNA-seq: functional analysis (requires pseudobulk DEG results)
+
+- [GO and KEGG enrichment](snRNA-seq/DEG/GO_KEGG_Enrichment.R) — overrepresentation analysis using a tested-gene background and human gene annotation (`clusterProfiler`, `org.Hs.eg.db`).
+- [Hallmark GSEA](snRNA-seq/DEG/GSEA_Hallmark.R) — preranked MSigDB Hallmark enrichment using `fgsea` and `msigdbr`.
+
+Run [Sample_Pseudobulk_edgeR.R](snRNA-seq/DEG/Sample_Pseudobulk_edgeR.R) first in the **same R session**. Both enrichment scripts depend on the in-memory `deg_results` list; neither invents results or exports CSV.
+
+### snATAC-seq: motif activity and TF–gene exploration
+
+- [chromVAR motif activity](snATAC-seq/Motif/chromVAR_Motif_Activity.R) — motif deviation UMAPs, requiring a precomputed `MotifMatrix`.
+- [TF–gene integration](snATAC-seq/Integration/TF_Gene_Integration.R) — an **exploratory** correlation of motif deviations against GeneScore aggregated by cell type. Requires matching features, cell barcodes, sufficient cell types, and the motif deviation `z` assay. **This is not peak-to-gene linkage, TF occupancy, or causal evidence.**
+
+### Suggested execution order
+
+```r
+# Run from the repository root with obj already loaded.
+source("snRNA-seq/DEG/Sample_Pseudobulk_edgeR.R")
+source("snRNA-seq/DEG/GO_KEGG_Enrichment.R")
+source("snRNA-seq/DEG/GSEA_Hallmark.R")
+
+# Run with proj1 already loaded; only after needed ArchR matrices exist.
+source("snATAC-seq/Motif/chromVAR_Motif_Activity.R")
+source("snATAC-seq/Integration/TF_Gene_Integration.R")
+```
+
+Extra R dependencies: `clusterProfiler`, `org.Hs.eg.db`, `enrichplot`, `msigdbr`, `fgsea`.
+
+**Validation status:** These are reproducible templates committed to the repository, not outputs confirmed by execution on the user's dataset. Check metadata, gene IDs, ArchR feature identifiers and package versions before publication.
