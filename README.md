@@ -1,51 +1,110 @@
-# IgA Nephropathy: snRNA-seq and snATAC-seq Visualization
+# IgA Nephropathy | snRNA-seq and snATAC-seq
 
-Reproducible R visualization scripts for human IgA nephropathy (IgAN) kidney multiomics.
+Modular **English-language R analysis scripts**, organized by task rather than figure number.
 
-## Scripts
+## Quick navigation
 
-- [snRNA-seq/IgAN_snRNA_Visualization.R](snRNA-seq/IgAN_snRNA_Visualization.R): Seurat cell-type and condition UMAPs, group composition, C7 feature/violin plots, and complement-associated expression dot plot.
-- [snATAC-seq/IgAN_snATAC_Visualization.R](snATAC-seq/IgAN_snATAC_Visualization.R): ArchR UMAPs, C7 GeneScore embedding, browser tracks, differential motif enrichment, and optional motif footprints and trajectories.
+### snRNA-seq | Seurat `obj`
 
-## Input objects
+| Analysis | Script | Requirements |
+|---|---|---|
+| Visualization: UMAP and composition | [UMAP_and_Composition.R](snRNA-seq/Visualization/UMAP_and_Composition.R) | `obj`, `group`, `celltype`, UMAP |
+| Visualization: C7 and complement genes | [C7_and_Complement.R](snRNA-seq/Visualization/C7_and_Complement.R) | RNA assay with normalized expression |
+| DEG: pseudobulk edgeR | [Sample_Pseudobulk_edgeR.R](snRNA-seq/DEG/Sample_Pseudobulk_edgeR.R) | **Raw counts**, `sample_id`, `group`, `celltype`, biological replicates |
 
-The scripts expect objects **already loaded into R**:
+### snATAC-seq | ArchR `proj1`
 
-- `obj`: Seurat object with metadata columns `group` and `celltype`, RNA assay, and `umap` or `umap.harmony`.
-- `proj1`: ArchRProject with metadata columns `group` and `celltype`, UMAP, and Arrow files accessible at their original paths.
+| Analysis | Script | Requirements |
+|---|---|---|
+| Visualization: UMAP and C7 GeneScore | [UMAP_and_C7.R](snATAC-seq/Visualization/UMAP_and_C7.R) | `proj1`, UMAP, GeneScoreMatrix for C7 |
+| Visualization: C7 browser tracks | [C7_BrowserTracks.R](snATAC-seq/Visualization/C7_BrowserTracks.R) | ArchR Arrow files, correct reference genome |
+| DAR: differential accessible regions | [Differential_Peaks.R](snATAC-seq/DAR/Differential_Peaks.R) | PeakMatrix, TSS enrichment, fragment counts |
+| Motif: differential enrichment | [Differential_Motif_Enrichment.R](snATAC-seq/Motif/Differential_Motif_Enrichment.R) | PeakMatrix, motif peak annotations |
+| Motif: FLI1 and NR2F1 footprints | [FLI1_NR2F1_Footprints.R](snATAC-seq/Motif/FLI1_NR2F1_Footprints.R) | motif positions and readable insertion files |
+| Trajectory: GeneScore and motif activity | [GeneScore_and_Motif_Trajectories.R](snATAC-seq/Trajectory/GeneScore_and_Motif_Trajectories.R) | existing trajectory from `addTrajectory()` |
 
-The group labels `HC`, `CTL`, `Healthy_Control`, `IgA`, `IgAN`, and `IgA_Nephropathy` are standardized for presentation. Modify the label map if your dataset uses other names. Input matrices are **not included**.
+All scripts reuse [R/common.R](R/common.R) for English group names, colors and figure exports.
 
-## Running
+## Repository structure
 
-Install compatible Bioconductor and CRAN packages, then run within the R session where the corresponding object is loaded:
-
-```r
-source("snRNA-seq/IgAN_snRNA_Visualization.R")
-source("snATAC-seq/IgAN_snATAC_Visualization.R")
+```text
+R/
+  common.R
+snRNA-seq/
+  Visualization/
+    UMAP_and_Composition.R
+    C7_and_Complement.R
+  DEG/
+    Sample_Pseudobulk_edgeR.R
+snATAC-seq/
+  Visualization/
+    UMAP_and_C7.R
+    C7_BrowserTracks.R
+  DAR/
+    Differential_Peaks.R
+  Motif/
+    Differential_Motif_Enrichment.R
+    FLI1_NR2F1_Footprints.R
+  Trajectory/
+    GeneScore_and_Motif_Trajectories.R
 ```
 
-The scripts produce PDF (vector where feasible) and 600-dpi PNG plots under `IgAN_snRNA_Figures/` or `IgAN_snATAC_Figures/` in the current working directory. **No CSV files are written.**
+## How to run
 
-## Dependencies
+From the **repository root** in an R session with `obj` and/or `proj1` already loaded:
 
-- R, Seurat (v5 recommended), ggplot2, dplyr, patchwork, scales
-- ArchR, ComplexHeatmap and SummarizedExperiment for snATAC
-- A functional Cairo PDF graphics device for some systems (base PDF is used as fallback)
+```r
+source("snRNA-seq/Visualization/UMAP_and_Composition.R")
+source("snRNA-seq/Visualization/C7_and_Complement.R")
 
-## Interpretation and requirements
+# Additional metadata required: sample_id
+source("snRNA-seq/DEG/Sample_Pseudobulk_edgeR.R")
 
-- Composition bars summarize pooled cell counts by group, **not** sample-level differential-abundance tests.
-- Violin plots show cell-level RNA expression and should not be treated as independent biological replicates. For statistical comparisons, analyze sample-level pseudobulk.
-- C7 GeneScore reflects chromatin accessibility, **not** C7 RNA abundance.
-- Browser plots require correct genome annotations, genomic coordinates and readable Arrow files.
-- Motif enrichment requires PeakMatrix, peak annotations, and bias covariates. Footprints require the matching motif positions. Trajectory figures require an existing ArchR trajectory annotation; no pseudotime is invented.
-- Some plots may be skipped with an explanatory message when prerequisites are absent. No analysis outcome is asserted without data.
+source("snATAC-seq/Visualization/UMAP_and_C7.R")
+source("snATAC-seq/Visualization/C7_BrowserTracks.R")
 
-## Reproducibility and sharing
+# Run only after the corresponding ArchR analyses have been prepared:
+source("snATAC-seq/DAR/Differential_Peaks.R")
+source("snATAC-seq/Motif/Differential_Motif_Enrichment.R")
+source("snATAC-seq/Motif/FLI1_NR2F1_Footprints.R")
+# First edit trajectory_name in the trajectory script:
+source("snATAC-seq/Trajectory/GeneScore_and_Motif_Trajectories.R")
+```
 
-Do not commit patient/sample identifying metadata, raw sequencing reads, large ArchR Arrow files, serialized Seurat/ArchR objects, or credentials. The included `.gitignore` excludes common generated and data files. Record package versions using `sessionInfo()` in your local analysis record.
+Run modules individually, not blindly all at once: motif, DAR and trajectory analyses can be computationally expensive. The trajectory script deliberately stops until you supply an existing trajectory name.
 
-## License
+### Metadata and groups
 
-No license is specified here. Add one after choosing the terms under which you want the code reused.
+- Group column: `group`
+- Cell annotation column: `celltype`
+- Biological replicate column for pseudobulk DEG: `sample_id` (edit the script if yours differs).
+- Recognized control labels: HC, CTL, Healthy_Control, control.
+- Recognized IgAN labels: IgA, IgAN, IgA_Nephropathy, nephritis.
+
+## Figures and analysis objects
+
+Figures are saved only as **PDF and 600-dpi PNG**, under `figures/<analysis>/`. No CSV files are written. DEG results are kept as R object `deg_results`; ArchR results are kept in the current session. Native ArchR footprint PDFs may be stored in the project's own `Plots/` directory.
+
+## Biological and statistical notes
+
+- UMAP and C7 violin plots are descriptive. Do not use individual cells as biological replicates.
+- Pooled composition plots are not differential-abundance tests.
+- Pseudobulk DEG sums raw RNA counts **by sample within cell type** and uses edgeR. Independent samples, not cells, are the inferential units. Replication, batch design and count availability must be checked before use.
+- ATAC GeneScore is a measure of estimated gene accessibility, not RNA expression.
+- Motif enrichment is not direct evidence of transcription-factor binding or activity.
+- Footprints require motif-specific positions, and trajectory plots require a biologically justified trajectory previously calculated with ArchR.
+
+## Packages
+
+Seurat, ggplot2, dplyr, patchwork, scales, Matrix, edgeR, ArchR, ComplexHeatmap, SummarizedExperiment.
+
+## Earlier monolithic scripts (kept for reference)
+
+- [IgAN_snRNA_Visualization.R](snRNA-seq/IgAN_snRNA_Visualization.R)
+- [IgAN_snATAC_Visualization.R](snATAC-seq/IgAN_snATAC_Visualization.R)
+
+**Use the task-oriented scripts above for new analysis.** The earlier combined files are retained so no prior work is lost.
+
+## Data and privacy
+
+Do not commit patient-identifying records, raw reads, Seurat/ArchR serialized projects, Arrow files, credentials or restricted raw data. No license has yet been selected.
